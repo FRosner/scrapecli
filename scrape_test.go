@@ -38,6 +38,7 @@ func TestSummarizeScrape_Integration(t *testing.T) {
 	require.Equal(t, "GAUGE", g.Type, "unexpected type for go_goroutines")
 	require.Contains(t, g.Description, "Number of goroutines", "unexpected description for go_goroutines")
 	require.Equal(t, 1, g.Cardinality, "unexpected cardinality for go_goroutines")
+	require.Greater(t, g.Size, int64(0), "expected go_goroutines size to be > 0")
 
 	b, ok := metricsByName["go_gc_heap_allocs_by_size_bytes"]
 	require.True(t, ok, "go_gc_heap_allocs_by_size_bytes metric not found in parsed metrics")
@@ -45,12 +46,14 @@ func TestSummarizeScrape_Integration(t *testing.T) {
 	require.Equal(t, 12, b.Cardinality, "unexpected cardinality for go_gc_heap_allocs_by_size_bytes")
 	require.Equal(t, "HISTOGRAM", b.Type, "unexpected type for go_gc_heap_allocs_by_size_bytes")
 	require.Contains(t, b.Description, "Distribution of heap allocations by approximate size", "unexpected description for go_gc_heap_allocs_by_size_bytes")
+	require.Greater(t, b.Size, int64(0), "expected go_gc_heap_allocs_by_size_bytes size to be > 0")
 
 	c, ok := metricsByName["prometheus_tsdb_exemplar_exemplars_appended_total"]
 	require.True(t, ok, "prometheus_tsdb_exemplar_exemplars_appended_total metric not found in parsed metrics")
 	require.Equal(t, "COUNTER", c.Type, "unexpected type for prometheus_tsdb_exemplar_exemplars_appended_total")
 	require.Contains(t, c.Description, "Total number of appended exemplars", "unexpected description for prometheus_tsdb_exemplar_exemplars_appended_total")
 	require.Equal(t, 1, c.Cardinality, "unexpected cardinality for prometheus_tsdb_exemplar_exemplars_appended_total")
+	require.Greater(t, c.Size, int64(0), "expected prometheus_tsdb_exemplar_exemplars_appended_total size to be > 0")
 
 	// Validate top cardinalities summary
 	top := summary.Summary.TopCardinalities

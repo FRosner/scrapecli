@@ -30,8 +30,8 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 			},
 		},
 		Metrics: []MetricSummary{
-			{Name: "metric_high_card", Type: "GAUGE", Description: "A high cardinality metric", Cardinality: 100, Labels: []string{"env"}},
-			{Name: "metric_low_card", Type: "COUNTER", Description: "A low cardinality metric", Cardinality: 2, Labels: []string{"env", "job"}},
+			{Name: "metric_high_card", Type: "GAUGE", Description: "A high cardinality metric", Cardinality: 100, Labels: []string{"env"}, Size: 10240},
+			{Name: "metric_low_card", Type: "COUNTER", Description: "A low cardinality metric", Cardinality: 2, Labels: []string{"env", "job"}, Size: 1024},
 			{Name: "metric_no_desc", Type: "GAUGE", Description: "", Cardinality: 1},
 		},
 	}
@@ -43,8 +43,8 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 Size: 12.06 KiB
 
 Top Metrics:
-   1. metric_high_card: 100 series
-   2. metric_low_card: 2 series
+   1. metric_high_card: 100 series, 10.00 KiB
+   2. metric_low_card: 2 series, 1.00 KiB
 
 Types:
   - gauge: 2 metrics

@@ -24,6 +24,7 @@ type MetricSummary struct {
 	Description string   `json:"description"`
 	Cardinality int      `json:"cardinality"`
 	Labels      []string `json:"labels"`
+	Size        int64    `json:"size_bytes"`
 }
 
 // ScrapeSummary wraps different summaries about a scrape.

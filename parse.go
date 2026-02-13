@@ -125,8 +125,40 @@ func parseScrape(data []byte) ([]MetricSummary, map[string]map[string]struct{}, 
 			Description: mf.GetHelp(),
 			Cardinality: card,
 			Labels:      metricLabels,
+			Size:        0, // filled later by scanning text lines
 		}
 		metrics = append(metrics, m)
+	}
+
+	// Compute size per metric by scanning the raw text representation line by line.
+	// We'll count the bytes of any line that contains a metric name.
+	// Build a lookup map from metric name to index in metrics slice for fast updates.
+	nameToIdx := make(map[string]int, len(metrics))
+	for i, m := range metrics {
+		nameToIdx[m.Name] = i
+	}
+
+	// Split data into lines preserving newline lengths. We treat '\n' as line
+	// separator and add 1 byte for it if present in original data.
+	lines := bytes.Split(data, []byte("\n"))
+	for i, line := range lines {
+		lineLen := len(line)
+		// Determine if this line had a trailing newline in the original data.
+		// All but the last split part had a trailing '\n'.
+		if i < len(lines)-1 {
+			lineLen += 1 // include the '\n' byte
+		}
+		if lineLen == 0 {
+			continue
+		}
+		// For each metric name, if it appears in the line, add the line length to that metric.
+		// This is O(n*m) in worst case but metric lists are small for test files.
+		lineStr := string(line)
+		for name, idx := range nameToIdx {
+			if strings.Contains(lineStr, name) {
+				metrics[idx].Size += int64(lineLen)
+			}
+		}
 	}
 
 	return metrics, globalValues, nil
@@ -146,11 +178,11 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 		sort.Slice(metrics, func(i, j int) bool {
 			return metrics[i].Cardinality > metrics[j].Cardinality
 		})
-		max := 10
-		if len(metrics) < max {
-			max = len(metrics)
+		limit := 10
+		if len(metrics) < limit {
+			limit = len(metrics)
 		}
-		for i := 0; i < max; i++ {
+		for i := 0; i < limit; i++ {
 			top = append(top, CardinalityEntry{
 				Name:        metrics[i].Name,
 				Cardinality: metrics[i].Cardinality,

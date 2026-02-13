@@ -27,11 +27,23 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 
 	// Top metrics (previously "Top Cardinalities")
 	if len(s.Summary.TopCardinalities) > 0 {
+		// Build a quick lookup from metric name to size for display
+		nameToSize := make(map[string]int64, len(s.Metrics))
+		for _, m := range s.Metrics {
+			nameToSize[m.Name] = m.Size
+		}
+
 		b.WriteString("Top Metrics:\n")
 		for i, e := range s.Summary.TopCardinalities {
 			valueWord := "series"
-			// Only the number is green; the word remains uncolored
-			b.WriteString(fmt.Sprintf("  %2d. %s: %s %s\n", i+1, yellow(e.Name), green(fmt.Sprintf("%d", e.Cardinality)), valueWord))
+			// Find size for this metric if available
+			sz := nameToSize[e.Name]
+			if sz > 0 {
+				// Only the numbers are green; human-readable size is cyan
+				b.WriteString(fmt.Sprintf("  %2d. %s: %s %s, %s\n", i+1, yellow(e.Name), green(fmt.Sprintf("%d", e.Cardinality)), valueWord, cyan(humanReadableBytes(sz))))
+			} else {
+				b.WriteString(fmt.Sprintf("  %2d. %s: %s %s\n", i+1, yellow(e.Name), green(fmt.Sprintf("%d", e.Cardinality)), valueWord))
+			}
 		}
 		b.WriteString("\n")
 	}
