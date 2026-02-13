@@ -7,6 +7,7 @@ type MetricsSummary struct {
 	Bytes            int64              `json:"bytes"`
 	TopCardinalities []CardinalityEntry `json:"top_cardinalities"`
 	TypesCount       map[string]int     `json:"type_counts,omitempty"`
+	LabelCounts      map[string]int     `json:"label_counts,omitempty"`
 }
 
 // CardinalityEntry is a small struct holding metric name and its cardinality.
@@ -17,10 +18,11 @@ type CardinalityEntry struct {
 
 // MetricSummary holds minimal metadata about a metric.
 type MetricSummary struct {
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	Description string `json:"description"`
-	Cardinality int    `json:"cardinality"`
+	Name        string   `json:"name"`
+	Type        string   `json:"type"`
+	Description string   `json:"description"`
+	Cardinality int      `json:"cardinality"`
+	Labels      []string `json:"labels"`
 }
 
 // ScrapeSummary wraps different summaries about a scrape.

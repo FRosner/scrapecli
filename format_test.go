@@ -20,10 +20,14 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 				{Name: "metric_low_card", Cardinality: 2},
 			},
 			TypesCount: map[string]int{"gauge": 2, "counter": 1},
+			LabelCounts: map[string]int{
+				"env": 2,
+				"job": 1,
+			},
 		},
 		Metrics: []MetricSummary{
-			{Name: "metric_high_card", Type: "GAUGE", Description: "A high cardinality metric", Cardinality: 100},
-			{Name: "metric_low_card", Type: "COUNTER", Description: "A low cardinality metric", Cardinality: 2},
+			{Name: "metric_high_card", Type: "GAUGE", Description: "A high cardinality metric", Cardinality: 100, Labels: []string{"env"}},
+			{Name: "metric_low_card", Type: "COUNTER", Description: "A low cardinality metric", Cardinality: 2, Labels: []string{"env", "job"}},
 			{Name: "metric_no_desc", Type: "GAUGE", Description: "", Cardinality: 1},
 		},
 	}
@@ -42,12 +46,16 @@ Types:
   - gauge: 2
   - counter: 1
 
+Labels:
+  - env: 2
+  - job: 1
+
 Metrics
 
-metric_high_card (type gauge, cardinality 100)
+metric_high_card (type gauge, cardinality 100, labels: env)
 A high cardinality metric
 
-metric_low_card (type counter, cardinality 2)
+metric_low_card (type counter, cardinality 2, labels: env, job)
 A low cardinality metric
 
 metric_no_desc (type gauge, cardinality 1)

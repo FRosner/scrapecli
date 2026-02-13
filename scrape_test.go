@@ -82,4 +82,18 @@ func TestSummarizeScrape_Integration(t *testing.T) {
 	}
 
 	require.Equal(t, typesFromMetrics, summary.Summary.TypesCount, "type counts in summary should match counts from parsed metrics")
+
+	// Verify labels for select metrics.
+	// go_gc_heap_allocs_by_size_bytes is a histogram, so it must have "le" label.
+	// It is fetched into 'b' above.
+	require.Contains(t, b.Labels, "le", "go_gc_heap_allocs_by_size_bytes should have 'le' label")
+
+	// Verify LabelCounts consistency
+	labelCountsFromMetrics := make(map[string]int)
+	for _, m := range summary.Metrics {
+		for _, l := range m.Labels {
+			labelCountsFromMetrics[l]++
+		}
+	}
+	require.Equal(t, labelCountsFromMetrics, summary.Summary.LabelCounts, "label counts in summary should match counts from parsed metrics")
 }

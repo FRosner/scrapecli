@@ -61,13 +61,46 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 		b.WriteString("\n")
 	}
 
+	// Label counts
+	if len(s.Summary.LabelCounts) > 0 {
+		// Convert map to slice for deterministic ordering: sort by count desc then name
+		labels := make([]struct {
+			Name  string
+			Count int
+		}, 0, len(s.Summary.LabelCounts))
+		for k, v := range s.Summary.LabelCounts {
+			labels = append(labels, struct {
+				Name  string
+				Count int
+			}{Name: k, Count: v})
+		}
+		sort.Slice(labels, func(i, j int) bool {
+			if labels[i].Count == labels[j].Count {
+				return labels[i].Name < labels[j].Name
+			}
+			return labels[i].Count > labels[j].Count
+		})
+
+		b.WriteString("Labels:\n")
+		for _, l := range labels {
+			b.WriteString(fmt.Sprintf("  - %s: %s\n", yellow(l.Name), green(fmt.Sprintf("%d", l.Count))))
+		}
+		b.WriteString("\n")
+	}
+
 	// Metrics - render as simple blocks rather than a table
 	b.WriteString(bold("Metrics") + "\n\n")
 	for _, m := range s.Metrics {
 		name := yellow(m.Name)
 		card := green(fmt.Sprintf("%d", m.Cardinality))
 		mType := green(strings.ToLower(m.Type))
-		b.WriteString(fmt.Sprintf("%s (type %s, cardinality %s)\n", name, mType, card))
+
+		labelsPart := ""
+		if len(m.Labels) > 0 {
+			labelsPart = fmt.Sprintf(", labels: %s", strings.Join(m.Labels, ", "))
+		}
+
+		b.WriteString(fmt.Sprintf("%s (type %s, cardinality %s%s)\n", name, mType, card, labelsPart))
 
 		desc := m.Description
 		if desc == "" {

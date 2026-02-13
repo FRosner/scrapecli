@@ -36,6 +36,16 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 		// Default cardinality is number of Metric instances in the family
 		card := len(mf.Metric)
 
+		// Collect unique label names appearing in this metric family
+		labelSet := make(map[string]struct{})
+		for _, m := range mf.Metric {
+			for _, lp := range m.Label {
+				if lp.Name != nil {
+					labelSet[*lp.Name] = struct{}{}
+				}
+			}
+		}
+
 		// For histograms and summaries, a single Metric instance may contain
 		// multiple exposed series (buckets/quantiles + sum/count). Compute a
 		// more accurate series count for these types.
@@ -48,6 +58,10 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 					card += len(metric.GetHistogram().Bucket)
 				}
 			}
+			// Histograms implicitly have the "le" label on buckets
+			if card > 0 {
+				labelSet["le"] = struct{}{}
+			}
 		case dto.MetricType_SUMMARY:
 			// Sum quantiles across all Metric entries
 			card = 0
@@ -56,13 +70,24 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 					card += len(metric.GetSummary().Quantile)
 				}
 			}
+			// Summaries implicitly have the "quantile" label on quantiles
+			if card > 0 {
+				labelSet["quantile"] = struct{}{}
+			}
 		}
+
+		metricLabels := make([]string, 0, len(labelSet))
+		for l := range labelSet {
+			metricLabels = append(metricLabels, l)
+		}
+		sort.Strings(metricLabels)
 
 		m := MetricSummary{
 			Name:        mf.GetName(),
 			Type:        mf.GetType().String(),
 			Description: mf.GetHelp(),
 			Cardinality: card,
+			Labels:      metricLabels,
 		}
 		metrics = append(metrics, m)
 	}
@@ -98,9 +123,14 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 	// Compute counts of all metric types (lowercased) so they can be included
 	// in the summary.
 	typesCount := make(map[string]int)
+	labelCounts := make(map[string]int)
+
 	for _, m := range metrics {
 		t := strings.ToLower(m.Type)
 		typesCount[t]++
+		for _, l := range m.Labels {
+			labelCounts[l]++
+		}
 	}
 
 	return ScrapeSummary{
@@ -108,6 +138,7 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 			Bytes:            SummarizeSize(data).Bytes,
 			TopCardinalities: top,
 			TypesCount:       typesCount,
+			LabelCounts:      labelCounts,
 		},
 		Metrics: metrics,
 	}
