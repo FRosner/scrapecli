@@ -39,6 +39,7 @@ func TestParseScrape(t *testing.T) {
 	// Assert presence and metadata for known metrics and their cardinalities
 	var foundGoroutines bool
 	var foundBucket bool
+	var foundCounter bool
 	for _, m := range metrics {
 		if m.Name == "go_goroutines" {
 			foundGoroutines = true
@@ -51,9 +52,19 @@ func TestParseScrape(t *testing.T) {
 			foundBucket = true
 			// For the histogram family, each bucket/sample is represented by a Metric instance
 			require.Equal(t, 12, m.Cardinality, "unexpected cardinality for go_gc_heap_allocs_by_size_bytes")
+			require.Equal(t, "HISTOGRAM", m.Type, "unexpected type for go_gc_heap_allocs_by_size_bytes")
+			require.Contains(t, m.Description, "Distribution of heap allocations by approximate size", "unexpected description for go_gc_heap_allocs_by_size_bytes")
+		}
+
+		if m.Name == "prometheus_tsdb_exemplar_exemplars_appended_total" {
+			foundCounter = true
+			require.Equal(t, "COUNTER", m.Type, "unexpected type for prometheus_tsdb_exemplar_exemplars_appended_total")
+			require.Contains(t, m.Description, "Total number of appended exemplars", "unexpected description for prometheus_tsdb_exemplar_exemplars_appended_total")
+			require.Equal(t, 1, m.Cardinality, "unexpected cardinality for prometheus_tsdb_exemplar_exemplars_appended_total")
 		}
 	}
 
 	require.True(t, foundGoroutines, "go_goroutines metric not found in parsed metrics")
 	require.True(t, foundBucket, "go_gc_heap_allocs_by_size_bytes metric not found in parsed metrics")
+	require.True(t, foundCounter, "prometheus_tsdb_exemplar_exemplars_appended_total metric not found in parsed metrics")
 }
