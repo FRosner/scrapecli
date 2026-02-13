@@ -35,15 +35,27 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 	b.WriteString(bold("Metrics:") + "\n")
 	w := tabwriter.NewWriter(&b, 0, 4, 2, ' ', 0)
 	// Header
-	fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", bold("NAME"), bold("TYPE"), bold("CARD"), bold("DESCRIPTION"))
+	_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", bold("NAME"), bold("TYPE"), bold("CARD"), bold("DESCRIPTION"))
 	for _, m := range s.Metrics {
 		desc := m.Description
 		if desc == "" {
 			desc = "-"
 		}
-		fmt.Fprintf(w, "%s\t%s\t%d\t%s\t\n", m.Name, m.Type, m.Cardinality, desc)
+		// Truncate long descriptions for terminal output (80 characters)
+		trunc := truncateString(desc, 80)
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%d\t%s\t\n", m.Name, m.Type, m.Cardinality, trunc)
 	}
 	_ = w.Flush()
 
 	return b.String()
+}
+
+// truncateString returns s unchanged if it's <= max runes; otherwise returns
+// the first max runes followed by "...". Uses runes to be Unicode-safe.
+func truncateString(s string, max int) string {
+	r := []rune(s)
+	if len(r) <= max {
+		return s
+	}
+	return string(r[:max]) + "..."
 }
