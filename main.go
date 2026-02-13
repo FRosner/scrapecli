@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 
+	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	prommodel "github.com/prometheus/common/model"
 )
@@ -22,6 +23,7 @@ type MetricSummary struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
 	Description string `json:"description"`
+	Cardinality int    `json:"cardinality"`
 }
 
 // ScrapeSummary wraps different summaries about a scrape.
@@ -38,7 +40,8 @@ func SummarizeSize(data []byte) MetricsSummary {
 }
 
 // parseScrape parses the Prometheus text exposition format from data and returns
-// a sorted slice of MetricSummary containing name, type and description (help).
+// a sorted slice of MetricSummary containing name, type and description (help)
+// and cardinality (number of metric instances / series).
 func parseScrape(data []byte) ([]MetricSummary, error) {
 	// Create a TextParser with explicit validation scheme to avoid relying on
 	// global state. The zero value TextParser is invalid and may panic.
@@ -58,10 +61,37 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 	metrics := make([]MetricSummary, 0, len(names))
 	for _, name := range names {
 		mf := mfs[name]
+
+		// Default cardinality is number of Metric instances in the family
+		card := len(mf.Metric)
+
+		// For histograms and summaries, a single Metric instance may contain
+		// multiple exposed series (buckets/quantiles + sum/count). Compute a
+		// more accurate series count for these types.
+		switch mf.GetType() {
+		case dto.MetricType_HISTOGRAM:
+			// Sum buckets across all Metric entries
+			card = 0
+			for _, metric := range mf.Metric {
+				if metric.GetHistogram() != nil {
+					card += len(metric.GetHistogram().Bucket)
+				}
+			}
+		case dto.MetricType_SUMMARY:
+			// Sum quantiles across all Metric entries
+			card = 0
+			for _, metric := range mf.Metric {
+				if metric.GetSummary() != nil {
+					card += len(metric.GetSummary().Quantile)
+				}
+			}
+		}
+
 		m := MetricSummary{
 			Name:        mf.GetName(),
 			Type:        mf.GetType().String(),
 			Description: mf.GetHelp(),
+			Cardinality: card,
 		}
 		metrics = append(metrics, m)
 	}
@@ -88,7 +118,7 @@ func main() {
 	// Read entire Prometheus scrape from stdin
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error reading stdin: %v\n", err)
+		_ = fmt.Errorf("error reading stdin: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -96,7 +126,7 @@ func main() {
 
 	b, err := json.MarshalIndent(summary, "", "  ")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error marshaling json: %v\n", err)
+		_ = fmt.Errorf("error marshaling json: %v\n", err)
 		os.Exit(1)
 	}
 
