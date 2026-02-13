@@ -29,6 +29,7 @@ go build
 ```bash
 curl -s localhost:9090/metrics | scrapecli
 ```
+<img width="709" height="1217" alt="image" src="https://github.com/user-attachments/assets/4f605c22-0b1b-436b-a9a9-2577aaa9c7dc" />
 
 If you built from source, use `./scrapecli` instead.
 
