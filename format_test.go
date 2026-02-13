@@ -34,7 +34,7 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 
 	out := FormatScrapeSummaryTerminal(s)
 
-	expected := `Scrape Summary
+	expected := `## Summary
 
 Size: 12.06 KiB
 
@@ -50,7 +50,7 @@ Labels:
   - env: 2
   - job: 1
 
-Metrics
+## Metrics
 
 metric_high_card (type gauge, cardinality 100, labels: env)
 A high cardinality metric

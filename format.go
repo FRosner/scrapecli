@@ -22,7 +22,7 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 	// prominent.
 	dim := color.New(color.Faint).SprintFunc()
 
-	b.WriteString(bold("Scrape Summary") + "\n\n")
+	b.WriteString(bold("## Summary") + "\n\n")
 	b.WriteString(fmt.Sprintf("Size: %s\n\n", cyan(humanReadableBytes(s.Summary.Bytes))))
 
 	// Top cardinalities
@@ -89,7 +89,7 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 	}
 
 	// Metrics - render as simple blocks rather than a table
-	b.WriteString(bold("Metrics") + "\n\n")
+	b.WriteString(bold("## Metrics") + "\n\n")
 	for _, m := range s.Metrics {
 		name := yellow(m.Name)
 		card := green(fmt.Sprintf("%d", m.Cardinality))
@@ -97,7 +97,11 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 
 		labelsPart := ""
 		if len(m.Labels) > 0 {
-			labelsPart = fmt.Sprintf(", labels: %s", strings.Join(m.Labels, ", "))
+			coloredLabels := make([]string, len(m.Labels))
+			for i, l := range m.Labels {
+				coloredLabels[i] = green(l)
+			}
+			labelsPart = fmt.Sprintf(", labels: %s", strings.Join(coloredLabels, ", "))
 		}
 
 		b.WriteString(fmt.Sprintf("%s (type %s, cardinality %s%s)\n", name, mType, card, labelsPart))
