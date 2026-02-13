@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -16,14 +17,18 @@ const noneLabelKey = "<none>"
 // parseScrape parses the Prometheus text exposition format from data and returns
 // a sorted slice of MetricSummary containing name, type and description (help)
 // and cardinality (number of metric instances / series).
-func parseScrape(data []byte) ([]MetricSummary, error) {
+// It also returns a map of global label values (label name -> set of values).
+func parseScrape(data []byte) ([]MetricSummary, map[string]map[string]struct{}, error) {
 	// Create a TextParser with explicit validation scheme to avoid relying on
 	// global state. The zero value TextParser is invalid and may panic.
 	parser := expfmt.NewTextParser(prommodel.UTF8Validation)
 	mfs, err := parser.TextToMetricFamilies(bytes.NewReader(data))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
+	// Global map to track distinct values for each label across all metrics
+	globalValues := make(map[string]map[string]struct{})
 
 	// Collect and sort metric names for deterministic output
 	names := make([]string, 0, len(mfs))
@@ -44,7 +49,16 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 		for _, m := range mf.Metric {
 			for _, lp := range m.Label {
 				if lp.Name != nil {
-					labelSet[*lp.Name] = struct{}{}
+					ln := *lp.Name
+					labelSet[ln] = struct{}{}
+
+					// Track global label values
+					if _, ok := globalValues[ln]; !ok {
+						globalValues[ln] = make(map[string]struct{})
+					}
+					if lp.Value != nil {
+						globalValues[ln][*lp.Value] = struct{}{}
+					}
 				}
 			}
 		}
@@ -56,9 +70,19 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 		case dto.MetricType_HISTOGRAM:
 			// Sum buckets across all Metric entries
 			card = 0
+			if _, ok := globalValues["le"]; !ok {
+				globalValues["le"] = make(map[string]struct{})
+			}
 			for _, metric := range mf.Metric {
 				if metric.GetHistogram() != nil {
-					card += len(metric.GetHistogram().Bucket)
+					buckets := metric.GetHistogram().Bucket
+					card += len(buckets)
+					for _, b := range buckets {
+						if b.UpperBound != nil {
+							val := fmt.Sprintf("%g", *b.UpperBound)
+							globalValues["le"][val] = struct{}{}
+						}
+					}
 				}
 			}
 			// Histograms implicitly have the "le" label on buckets
@@ -68,9 +92,19 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 		case dto.MetricType_SUMMARY:
 			// Sum quantiles across all Metric entries
 			card = 0
+			if _, ok := globalValues["quantile"]; !ok {
+				globalValues["quantile"] = make(map[string]struct{})
+			}
 			for _, metric := range mf.Metric {
 				if metric.GetSummary() != nil {
-					card += len(metric.GetSummary().Quantile)
+					quantiles := metric.GetSummary().Quantile
+					card += len(quantiles)
+					for _, q := range quantiles {
+						if q.Quantile != nil {
+							val := fmt.Sprintf("%g", *q.Quantile)
+							globalValues["quantile"][val] = struct{}{}
+						}
+					}
 				}
 			}
 			// Summaries implicitly have the "quantile" label on quantiles
@@ -95,17 +129,18 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 		metrics = append(metrics, m)
 	}
 
-	return metrics, nil
+	return metrics, globalValues, nil
 }
 
 // SummarizeScrape composes all available summaries for a scrape.
 func SummarizeScrape(data []byte) ScrapeSummary {
-	metrics, err := parseScrape(data)
+	metrics, globalValues, err := parseScrape(data)
 	var top []CardinalityEntry
 	if err != nil {
 		// If parsing fails, return size summary and an empty metrics slice.
 		// We avoid exiting here so callers can handle the summary as needed.
 		metrics = []MetricSummary{}
+		globalValues = make(map[string]map[string]struct{})
 	} else {
 		// Compute top 10 metrics by cardinality
 		sort.Slice(metrics, func(i, j int) bool {
@@ -127,9 +162,15 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 	// in the summary.
 	typesCount := make(map[string]int)
 	labelCounts := make(map[string]int)
+	labelValueCounts := make(map[string]int)
 
 	// Ensure the none key exists so callers always see it even if zero
 	labelCounts[noneLabelKey] = 0
+
+	// Aggregate global label value counts
+	for l, values := range globalValues {
+		labelValueCounts[l] = len(values)
+	}
 
 	for _, m := range metrics {
 		t := strings.ToLower(m.Type)
@@ -152,6 +193,7 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 			TopCardinalities: top,
 			TypesCount:       typesCount,
 			LabelCounts:      labelCounts,
+			LabelValueCounts: labelValueCounts,
 		},
 		Metrics: metrics,
 	}

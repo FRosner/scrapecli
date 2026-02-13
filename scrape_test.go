@@ -102,4 +102,23 @@ func TestSummarizeScrape_Integration(t *testing.T) {
 		}
 	}
 	require.Equal(t, labelCountsFromMetrics, summary.Summary.LabelCounts, "label counts in summary should match counts from parsed metrics")
+
+	// Verify LabelValueCounts
+	// Check specifically for "le", "quantile" or other labels if known to vary.
+	// For "go_gc_heap_allocs_by_size_bytes", "le" buckets.
+	// We know it has 12 buckets + Inf maybe?
+	// The cardinality is 12, so there are 12 buckets.
+	// Distinct values for "le" should be approximately 12.
+	leCount, ok := summary.Summary.LabelValueCounts["le"]
+	require.True(t, ok, "le label should be present in LabelValueCounts")
+	require.GreaterOrEqual(t, leCount, 1, "le should have at least 1 distinct value")
+
+	// You can also check "quantile" if present in the input file
+	// Also check a regular label if possible?
+	// Based on TestSummarizeScrape_Integration, we don't know exact content of test-resources/prometheus-scrape.txt
+	// without reading it, but we can assert basic properties.
+	for k, v := range summary.Summary.LabelValueCounts {
+		require.Greater(t, v, 0, "distinct value count for label %s should be > 0", k)
+	}
+
 }

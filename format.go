@@ -54,9 +54,14 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 			return types[i].Count > types[j].Count
 		})
 
-		b.WriteString("Types (unique metric count):\n")
+		b.WriteString("Types:\n")
 		for _, t := range types {
-			b.WriteString(fmt.Sprintf("  - %s: %s\n", yellow(t.Name), green(fmt.Sprintf("%d", t.Count))))
+			metricWord := "metrics"
+			if t.Count == 1 {
+				metricWord = "metric"
+			}
+			// Only the number is green
+			b.WriteString(fmt.Sprintf("  - %s: %s %s\n", yellow(t.Name), green(fmt.Sprintf("%d", t.Count)), metricWord))
 		}
 		b.WriteString("\n")
 	}
@@ -81,9 +86,28 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 			return labels[i].Count > labels[j].Count
 		})
 
-		b.WriteString("Labels (unique metric count):\n")
+		b.WriteString("Labels:\n")
 		for _, l := range labels {
-			b.WriteString(fmt.Sprintf("  - %s: %s\n", yellow(l.Name), green(fmt.Sprintf("%d", l.Count))))
+			distinctValCount := s.Summary.LabelValueCounts[l.Name]
+
+			metricWord := "distinct metrics"
+			if l.Count == 1 {
+				metricWord = "distinct metric"
+			}
+
+			valueWord := "distinct values"
+			if distinctValCount == 1 {
+				valueWord = "distinct value"
+			}
+
+			if l.Name == "<none>" {
+				// Special handling for <none> key which won't have values
+				// Only the number is green
+				b.WriteString(fmt.Sprintf("  - %s: %s %s\n", yellow(l.Name), green(fmt.Sprintf("%d", l.Count)), metricWord))
+			} else {
+				// Only the numbers are green; the words remain uncolored
+				b.WriteString(fmt.Sprintf("  - %s: %s, %s\n", yellow(l.Name), green(fmt.Sprintf("%d", l.Count))+" "+metricWord, green(fmt.Sprintf("%d", distinctValCount))+" "+valueWord))
+			}
 		}
 		b.WriteString("\n")
 	}

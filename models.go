@@ -8,6 +8,7 @@ type MetricsSummary struct {
 	TopCardinalities []CardinalityEntry `json:"top_cardinalities"`
 	TypesCount       map[string]int     `json:"type_counts,omitempty"`
 	LabelCounts      map[string]int     `json:"label_counts,omitempty"`
+	LabelValueCounts map[string]int     `json:"label_value_counts,omitempty"`
 }
 
 // CardinalityEntry is a small struct holding metric name and its cardinality.

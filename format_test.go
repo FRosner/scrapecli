@@ -24,6 +24,10 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 				"env": 2,
 				"job": 1,
 			},
+			LabelValueCounts: map[string]int{
+				"env": 3,
+				"job": 1,
+			},
 		},
 		Metrics: []MetricSummary{
 			{Name: "metric_high_card", Type: "GAUGE", Description: "A high cardinality metric", Cardinality: 100, Labels: []string{"env"}},
@@ -42,13 +46,13 @@ Top Cardinalities:
    1. metric_high_card: 100
    2. metric_low_card: 2
 
-Types (unique metric count):
-  - gauge: 2
-  - counter: 1
+Types:
+  - gauge: 2 metrics
+  - counter: 1 metric
 
-Labels (unique metric count):
-  - env: 2
-  - job: 1
+Labels:
+  - env: 2 distinct metrics, 3 distinct values
+  - job: 1 distinct metric, 1 distinct value
 
 ## Metrics
 
