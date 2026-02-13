@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -73,4 +74,12 @@ func TestSummarizeScrape_Integration(t *testing.T) {
 	}
 	// Ensure a known high-cardinality metric is present in the top list
 	require.True(t, foundBucketInTop, "expected go_gc_heap_allocs_by_size_bytes to be present in top cardinalities")
+
+	// New assertions: verify the TypesCount in the summary matches counts computed from the parsed metrics.
+	typesFromMetrics := make(map[string]int)
+	for _, m := range summary.Metrics {
+		typesFromMetrics[strings.ToLower(m.Type)]++
+	}
+
+	require.Equal(t, typesFromMetrics, summary.Summary.TypesCount, "type counts in summary should match counts from parsed metrics")
 }
