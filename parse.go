@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"sort"
+	"strings"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
@@ -94,10 +95,19 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 		}
 	}
 
+	// Compute counts of all metric types (lowercased) so they can be included
+	// in the summary.
+	typesCount := make(map[string]int)
+	for _, m := range metrics {
+		t := strings.ToLower(m.Type)
+		typesCount[t]++
+	}
+
 	return ScrapeSummary{
 		Summary: MetricsSummary{
 			Bytes:            SummarizeSize(data).Bytes,
 			TopCardinalities: top,
+			TypesCount:       typesCount,
 		},
 		Metrics: metrics,
 	}
