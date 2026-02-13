@@ -12,8 +12,8 @@ import (
 	prommodel "github.com/prometheus/common/model"
 )
 
-// SizeSummary holds a summary of the size and is JSON-serializable.
-type SizeSummary struct {
+// MetricsSummary holds a summary of the size and is JSON-serializable.
+type MetricsSummary struct {
 	Bytes int64 `json:"bytes"`
 }
 
@@ -26,13 +26,13 @@ type MetricSummary struct {
 
 // ScrapeSummary wraps different summaries about a scrape.
 type ScrapeSummary struct {
-	Size    SizeSummary     `json:"size"`
+	Summary MetricsSummary  `json:"summary"`
 	Metrics []MetricSummary `json:"metrics"`
 }
 
-// SummarizeSize takes the raw scrape bytes and returns a SizeSummary.
-func SummarizeSize(data []byte) SizeSummary {
-	return SizeSummary{
+// SummarizeSize takes the raw scrape bytes and returns a MetricsSummary.
+func SummarizeSize(data []byte) MetricsSummary {
+	return MetricsSummary{
 		Bytes: int64(len(data)),
 	}
 }
@@ -79,7 +79,7 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 	}
 
 	return ScrapeSummary{
-		Size:    SummarizeSize(data),
+		Summary: SummarizeSize(data),
 		Metrics: metrics,
 	}
 }
