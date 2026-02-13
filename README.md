@@ -6,6 +6,14 @@ Small command line interface to analyze and interact with Prometheus scrapes
 
 ## Installation
 
+### Using go install
+
+If you have Go installed, you can install the latest version directly:
+
+```bash
+go install github.com/FRosner/scrapecli@latest
+```
+
 ### From Release
 
 Download the latest release for your platform from the [releases page](https://github.com/FRosner/scrapecli/releases).
@@ -19,8 +27,10 @@ go build
 ## Usage
 
 ```bash
-curl -s localhost:9090/metrics | ./scrapecli
+curl -s localhost:9090/metrics | scrapecli
 ```
+
+If you built from source, use `./scrapecli` instead.
 
 ## Releasing
 
