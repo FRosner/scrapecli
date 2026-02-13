@@ -54,7 +54,7 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 			return types[i].Count > types[j].Count
 		})
 
-		b.WriteString("Types:\n")
+		b.WriteString("Types (unique metric count):\n")
 		for _, t := range types {
 			b.WriteString(fmt.Sprintf("  - %s: %s\n", yellow(t.Name), green(fmt.Sprintf("%d", t.Count))))
 		}
@@ -81,7 +81,7 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 			return labels[i].Count > labels[j].Count
 		})
 
-		b.WriteString("Labels:\n")
+		b.WriteString("Labels (unique metric count):\n")
 		for _, l := range labels {
 			b.WriteString(fmt.Sprintf("  - %s: %s\n", yellow(l.Name), green(fmt.Sprintf("%d", l.Count))))
 		}

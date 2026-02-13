@@ -90,7 +90,13 @@ func TestSummarizeScrape_Integration(t *testing.T) {
 
 	// Verify LabelCounts consistency
 	labelCountsFromMetrics := make(map[string]int)
+	// Include the special none key so expected matches summary behavior for metrics without labels
+	labelCountsFromMetrics[noneLabelKey] = 0
 	for _, m := range summary.Metrics {
+		if len(m.Labels) == 0 {
+			labelCountsFromMetrics[noneLabelKey]++
+			continue
+		}
 		for _, l := range m.Labels {
 			labelCountsFromMetrics[l]++
 		}

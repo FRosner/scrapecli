@@ -42,11 +42,11 @@ Top Cardinalities:
    1. metric_high_card: 100
    2. metric_low_card: 2
 
-Types:
+Types (unique metric count):
   - gauge: 2
   - counter: 1
 
-Labels:
+Labels (unique metric count):
   - env: 2
   - job: 1
 

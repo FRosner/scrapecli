@@ -10,6 +10,9 @@ import (
 	prommodel "github.com/prometheus/common/model"
 )
 
+// special key used to count metrics that have no labels
+const noneLabelKey = "<none>"
+
 // parseScrape parses the Prometheus text exposition format from data and returns
 // a sorted slice of MetricSummary containing name, type and description (help)
 // and cardinality (number of metric instances / series).
@@ -125,9 +128,19 @@ func SummarizeScrape(data []byte) ScrapeSummary {
 	typesCount := make(map[string]int)
 	labelCounts := make(map[string]int)
 
+	// Ensure the none key exists so callers always see it even if zero
+	labelCounts[noneLabelKey] = 0
+
 	for _, m := range metrics {
 		t := strings.ToLower(m.Type)
 		typesCount[t]++
+
+		// If a metric has no labels, count it under the special noneLabelKey
+		if len(m.Labels) == 0 {
+			labelCounts[noneLabelKey]++
+			continue
+		}
+
 		for _, l := range m.Labels {
 			labelCounts[l]++
 		}
