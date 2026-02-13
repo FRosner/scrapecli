@@ -1,0 +1,114 @@
+# GoReleaser configuration for scrapecli
+# See https://goreleaser.com for documentation
+
+version: 2
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # You may remove this if you don't need go generate
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    binary: scrapecli
+
+archives:
+  - # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - README.md
+      - LICENSE*
+    formats:
+      - tar.gz
+      - zip
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+
+# GitHub Release configuration
+release:
+  # Repo name.
+  # Default: extracted from the git remote
+  # Templates: allowed
+  github:
+    owner: FRosner
+    name: scrapecli
+  
+  # If set to true, will not auto-publish the release.
+  # Available only for GitHub and Gitea.
+  draft: false
+  
+  # Whether to remove existing draft releases with the same name before creating
+  # a new one.
+  # Only effective if `draft` is set to true.
+  replace_existing_draft: true
+  
+  # Useful if you want to delay the creation of the tag in the remote.
+  # You can create the tag locally, but not push it, and run GoReleaser.
+  # It'll then set the `target_commitish` portion of the release to the value
+  # of this field.
+  # Only works on GitHub.
+  #
+  # Templates: allowed
+  # target_commitish: "{{ .Commit }}"
+  
+  # This is an optional field where you can specify additional release notes
+  # to be added to the beginning of the changelog.
+  #
+  # Templates: allowed
+  # header: |
+  #   ## Release notes for {{ .Tag }}
+  
+  # Footnote for the release.
+  #
+  # Templates: allowed
+  # footer: |
+  #   ## Thanks!
+  
+  # You can disable GitHub release creation by setting this to true.
+  disable: false
+  
+  # Set this to true if you want to disable just the artifact upload to the
+  # GitHub release. This is useful if you want to publish to somewhere else
+  # and also GitHub, but don't want to upload the same artifacts twice.
+  prerelease: auto
