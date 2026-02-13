@@ -59,7 +59,7 @@ metric_low_card (type counter, cardinality 2, labels: env, job)
 A low cardinality metric
 
 metric_no_desc (type gauge, cardinality 1)
-no description
+<no description>
 
 `
 

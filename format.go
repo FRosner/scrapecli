@@ -105,9 +105,9 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 		desc := m.Description
 		if desc == "" {
 			// Use a lightweight/dim color for missing descriptions.
-			b.WriteString(fmt.Sprintf("%s\n\n", dim("no description")))
+			b.WriteString(fmt.Sprintf("%s\n\n", dim("<no description>")))
 		} else {
-			b.WriteString(fmt.Sprintf("%s\n\n", desc))
+			b.WriteString(fmt.Sprintf("%s\n\n", dim(desc)))
 		}
 	}
 
