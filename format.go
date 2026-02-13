@@ -25,11 +25,13 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 	b.WriteString(bold("## Summary") + "\n\n")
 	b.WriteString(fmt.Sprintf("Size: %s\n\n", cyan(humanReadableBytes(s.Summary.Bytes))))
 
-	// Top cardinalities
+	// Top metrics (previously "Top Cardinalities")
 	if len(s.Summary.TopCardinalities) > 0 {
-		b.WriteString("Top Cardinalities:\n")
+		b.WriteString("Top Metrics:\n")
 		for i, e := range s.Summary.TopCardinalities {
-			b.WriteString(fmt.Sprintf("  %2d. %s: %s\n", i+1, yellow(e.Name), green(fmt.Sprintf("%d", e.Cardinality))))
+			valueWord := "series"
+			// Only the number is green; the word remains uncolored
+			b.WriteString(fmt.Sprintf("  %2d. %s: %s %s\n", i+1, yellow(e.Name), green(fmt.Sprintf("%d", e.Cardinality)), valueWord))
 		}
 		b.WriteString("\n")
 	}
@@ -90,14 +92,14 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 		for _, l := range labels {
 			distinctValCount := s.Summary.LabelValueCounts[l.Name]
 
-			metricWord := "distinct metrics"
+			metricWord := "metrics"
 			if l.Count == 1 {
-				metricWord = "distinct metric"
+				metricWord = "metric"
 			}
 
-			valueWord := "distinct values"
+			valueWord := "values"
 			if distinctValCount == 1 {
-				valueWord = "distinct value"
+				valueWord = "value"
 			}
 
 			if l.Name == "<none>" {
@@ -128,7 +130,13 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 			labelsPart = fmt.Sprintf(", labels: %s", strings.Join(coloredLabels, ", "))
 		}
 
-		b.WriteString(fmt.Sprintf("%s (type %s, cardinality %s%s)\n", name, mType, card, labelsPart))
+		// pluralize value/values for readability
+		valueWord := "values"
+		if m.Cardinality == 1 {
+			valueWord = "value"
+		}
+
+		b.WriteString(fmt.Sprintf("%s (type %s, %s %s%s)\n", name, mType, card, valueWord, labelsPart))
 
 		desc := m.Description
 		if desc == "" {
