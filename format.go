@@ -19,12 +19,12 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 	yellow := color.New(color.FgHiYellow).SprintFunc()
 	green := color.New(color.FgHiGreen).SprintFunc()
 
-	b.WriteString(bold("Scrape Summary") + "\n")
-	b.WriteString(fmt.Sprintf("%s %s\n\n", bold("Size:"), cyan(fmt.Sprintf("%d bytes", s.Summary.Bytes))))
+	b.WriteString(bold("Scrape Summary") + "\n\n")
+	b.WriteString(fmt.Sprintf("Size: %s\n\n", cyan(fmt.Sprintf("%d bytes", s.Summary.Bytes))))
 
 	// Top cardinalities
 	if len(s.Summary.TopCardinalities) > 0 {
-		b.WriteString(bold("Top Cardinalities:") + "\n")
+		b.WriteString("Top Cardinalities:\n")
 		for i, e := range s.Summary.TopCardinalities {
 			b.WriteString(fmt.Sprintf("  %2d. %s: %s\n", i+1, yellow(e.Name), green(fmt.Sprintf("%d", e.Cardinality))))
 		}
@@ -32,7 +32,7 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 	}
 
 	// Metrics table
-	b.WriteString(bold("Metrics:") + "\n")
+	b.WriteString(bold("Metrics") + "\n\n")
 	w := tabwriter.NewWriter(&b, 0, 4, 2, ' ', 0)
 	// Header
 	_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n", bold("NAME"), bold("TYPE"), bold("CARD"), bold("DESCRIPTION"))

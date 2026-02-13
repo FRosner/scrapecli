@@ -30,13 +30,15 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 	out := FormatScrapeSummaryTerminal(s)
 
 	expected := `Scrape Summary
+
 Size: 12345 bytes
 
 Top Cardinalities:
    1. metric_high_card: 100
    2. metric_low_card: 2
 
-Metrics:
+Metrics
+
 NAME              TYPE     CARD  DESCRIPTION                
 metric_high_card  GAUGE    100   A high cardinality metric  
 metric_low_card   COUNTER  2     A low cardinality metric   
