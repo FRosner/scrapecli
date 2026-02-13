@@ -15,7 +15,14 @@ import (
 
 // MetricsSummary holds a summary of the size and is JSON-serializable.
 type MetricsSummary struct {
-	Bytes int64 `json:"bytes"`
+	Bytes            int64              `json:"bytes"`
+	TopCardinalities []CardinalityEntry `json:"top_cardinalities"`
+}
+
+// CardinalityEntry is a small struct holding metric name and its cardinality.
+type CardinalityEntry struct {
+	Name        string `json:"name"`
+	Cardinality int    `json:"cardinality"`
 }
 
 // MetricSummary holds minimal metadata about a metric.
@@ -102,14 +109,33 @@ func parseScrape(data []byte) ([]MetricSummary, error) {
 // SummarizeScrape composes all available summaries for a scrape.
 func SummarizeScrape(data []byte) ScrapeSummary {
 	metrics, err := parseScrape(data)
+	var top []CardinalityEntry
 	if err != nil {
 		// If parsing fails, return size summary and an empty metrics slice.
 		// We avoid exiting here so callers can handle the summary as needed.
 		metrics = []MetricSummary{}
+	} else {
+		// Compute top 10 metrics by cardinality
+		sort.Slice(metrics, func(i, j int) bool {
+			return metrics[i].Cardinality > metrics[j].Cardinality
+		})
+		max := 10
+		if len(metrics) < max {
+			max = len(metrics)
+		}
+		for i := 0; i < max; i++ {
+			top = append(top, CardinalityEntry{
+				Name:        metrics[i].Name,
+				Cardinality: metrics[i].Cardinality,
+			})
+		}
 	}
 
 	return ScrapeSummary{
-		Summary: SummarizeSize(data),
+		Summary: MetricsSummary{
+			Bytes:            SummarizeSize(data).Bytes,
+			TopCardinalities: top,
+		},
 		Metrics: metrics,
 	}
 }
