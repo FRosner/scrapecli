@@ -31,7 +31,7 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 
 	expected := `Scrape Summary
 
-Size: 12345 bytes
+Size: 12.06 KiB
 
 Top Cardinalities:
    1. metric_high_card: 100
@@ -39,10 +39,15 @@ Top Cardinalities:
 
 Metrics
 
-NAME              TYPE     CARD  DESCRIPTION                
-metric_high_card  GAUGE    100   A high cardinality metric  
-metric_low_card   COUNTER  2     A low cardinality metric   
-metric_no_desc    GAUGE    1     -                          
+metric_high_card (type gauge, cardinality 100)
+A high cardinality metric
+
+metric_low_card (type counter, cardinality 2)
+A low cardinality metric
+
+metric_no_desc (type gauge, cardinality 1)
+no description
+
 `
 
 	require.Equal(t, expected, out, "formatted output should match exactly")
