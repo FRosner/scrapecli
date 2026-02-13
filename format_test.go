@@ -42,27 +42,27 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 
 Size: 12.06 KiB
 
-Top Cardinalities:
-   1. metric_high_card: 100
-   2. metric_low_card: 2
+Top Metrics:
+   1. metric_high_card: 100 series
+   2. metric_low_card: 2 series
 
 Types:
   - gauge: 2 metrics
   - counter: 1 metric
 
 Labels:
-  - env: 2 distinct metrics, 3 distinct values
-  - job: 1 distinct metric, 1 distinct value
+  - env: 2 metrics, 3 values
+  - job: 1 metric, 1 value
 
 ## Metrics
 
-metric_high_card (type gauge, cardinality 100, labels: env)
+metric_high_card (type gauge, 100 values, labels: env)
 A high cardinality metric
 
-metric_low_card (type counter, cardinality 2, labels: env, job)
+metric_low_card (type counter, 2 values, labels: env, job)
 A low cardinality metric
 
-metric_no_desc (type gauge, cardinality 1)
+metric_no_desc (type gauge, 1 value)
 <no description>
 
 `
