@@ -19,6 +19,7 @@ func TestFormatScrapeSummaryTerminal(t *testing.T) {
 				{Name: "metric_high_card", Cardinality: 100},
 				{Name: "metric_low_card", Cardinality: 2},
 			},
+			TypesCount: map[string]int{"gauge": 2, "counter": 1},
 		},
 		Metrics: []MetricSummary{
 			{Name: "metric_high_card", Type: "GAUGE", Description: "A high cardinality metric", Cardinality: 100},
@@ -36,6 +37,10 @@ Size: 12.06 KiB
 Top Cardinalities:
    1. metric_high_card: 100
    2. metric_low_card: 2
+
+Types:
+  - gauge: 2
+  - counter: 1
 
 Metrics
 

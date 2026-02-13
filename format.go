@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/fatih/color"
@@ -29,6 +30,33 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 		b.WriteString("Top Cardinalities:\n")
 		for i, e := range s.Summary.TopCardinalities {
 			b.WriteString(fmt.Sprintf("  %2d. %s: %s\n", i+1, yellow(e.Name), green(fmt.Sprintf("%d", e.Cardinality))))
+		}
+		b.WriteString("\n")
+	}
+
+	// Type counts (all metric types)
+	if len(s.Summary.TypesCount) > 0 {
+		// Convert map to slice for deterministic ordering: sort by count desc then name
+		types := make([]struct {
+			Name  string
+			Count int
+		}, 0, len(s.Summary.TypesCount))
+		for k, v := range s.Summary.TypesCount {
+			types = append(types, struct {
+				Name  string
+				Count int
+			}{Name: k, Count: v})
+		}
+		sort.Slice(types, func(i, j int) bool {
+			if types[i].Count == types[j].Count {
+				return types[i].Name < types[j].Name
+			}
+			return types[i].Count > types[j].Count
+		})
+
+		b.WriteString("Types:\n")
+		for _, t := range types {
+			b.WriteString(fmt.Sprintf("  - %s: %s\n", yellow(t.Name), green(fmt.Sprintf("%d", t.Count))))
 		}
 		b.WriteString("\n")
 	}

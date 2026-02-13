@@ -6,6 +6,7 @@ package main
 type MetricsSummary struct {
 	Bytes            int64              `json:"bytes"`
 	TopCardinalities []CardinalityEntry `json:"top_cardinalities"`
+	TypesCount       map[string]int     `json:"type_counts,omitempty"`
 }
 
 // CardinalityEntry is a small struct holding metric name and its cardinality.
