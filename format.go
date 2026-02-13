@@ -82,27 +82,30 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 
 	// Label counts
 	if len(s.Summary.LabelCounts) > 0 {
-		// Convert map to slice for deterministic ordering: sort by count desc then name
+		// Convert map to slice for deterministic ordering: sort by distinct value count (LabelValueCounts) desc then name
 		labels := make([]struct {
-			Name  string
-			Count int
+			Name       string
+			Count      int
+			ValueCount int
 		}, 0, len(s.Summary.LabelCounts))
 		for k, v := range s.Summary.LabelCounts {
+			vc := s.Summary.LabelValueCounts[k]
 			labels = append(labels, struct {
-				Name  string
-				Count int
-			}{Name: k, Count: v})
+				Name       string
+				Count      int
+				ValueCount int
+			}{Name: k, Count: v, ValueCount: vc})
 		}
 		sort.Slice(labels, func(i, j int) bool {
-			if labels[i].Count == labels[j].Count {
+			if labels[i].ValueCount == labels[j].ValueCount {
 				return labels[i].Name < labels[j].Name
 			}
-			return labels[i].Count > labels[j].Count
+			return labels[i].ValueCount > labels[j].ValueCount
 		})
 
 		b.WriteString("Labels:\n")
 		for _, l := range labels {
-			distinctValCount := s.Summary.LabelValueCounts[l.Name]
+			distinctValCount := l.ValueCount
 
 			metricWord := "metrics"
 			if l.Count == 1 {
@@ -119,8 +122,8 @@ func FormatScrapeSummaryTerminal(s ScrapeSummary) string {
 				// Only the number is green
 				b.WriteString(fmt.Sprintf("  - %s: %s %s\n", yellow(l.Name), green(fmt.Sprintf("%d", l.Count)), metricWord))
 			} else {
-				// Only the numbers are green; the words remain uncolored
-				b.WriteString(fmt.Sprintf("  - %s: %s, %s\n", yellow(l.Name), green(fmt.Sprintf("%d", l.Count))+" "+metricWord, green(fmt.Sprintf("%d", distinctValCount))+" "+valueWord))
+				// Flip order: values first, then metrics. Only the numbers are green; the words remain uncolored
+				b.WriteString(fmt.Sprintf("  - %s: %s, %s\n", yellow(l.Name), green(fmt.Sprintf("%d", distinctValCount))+" "+valueWord, green(fmt.Sprintf("%d", l.Count))+" "+metricWord))
 			}
 		}
 		b.WriteString("\n")

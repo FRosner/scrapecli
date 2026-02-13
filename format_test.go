@@ -51,8 +51,8 @@ Types:
   - counter: 1 metric
 
 Labels:
-  - env: 2 metrics, 3 values
-  - job: 1 metric, 1 value
+  - env: 3 values, 2 metrics
+  - job: 1 value, 1 metric
 
 ## Metrics
 
