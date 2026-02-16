@@ -6,6 +6,15 @@ Small command line interface to analyze and interact with Prometheus scrapes
 
 ## Installation
 
+### Using Homebrew
+
+If you have Homebrew installed on macOS or Linux, you can install scrapecli via our tap:
+
+```bash
+brew tap FRosner/tap
+brew install scrapecli
+```
+
 ### Using go install
 
 If you have Go installed, you can install the latest version directly:
