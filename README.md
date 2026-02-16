@@ -98,8 +98,15 @@ After creating a release, you can test the Homebrew installation:
 3. **Verify the installation:**
    ```bash
    scrapecli --version
-   # or test with actual metrics
+   ```
+   
+   Or test with actual Prometheus metrics (requires a running Prometheus instance):
+   ```bash
+   # Example: if you have Prometheus running locally on port 9090
    curl -s localhost:9090/metrics | scrapecli
+   
+   # Alternative: use the test resource file from the repository
+   cat test-resources/prometheus-scrape.txt | scrapecli
    ```
 
 4. **Uninstall (if needed):**

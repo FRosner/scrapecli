@@ -23,13 +23,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create and push tag (manual dispatch only)
+      - name: Create tag (manual dispatch only)
         if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "${{ inputs.tag }}" -m "Release ${{ inputs.tag }}"
-          git push origin "${{ inputs.tag }}"
+          # Check if tag already exists
+          if git rev-parse "${{ inputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ inputs.tag }} already exists"
+          else
+            git tag -a "${{ inputs.tag }}" -m "Release ${{ inputs.tag }}"
+          fi
 
       - name: Set up Go
         uses: actions/setup-go@v5
