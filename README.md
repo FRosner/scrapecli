@@ -46,13 +46,26 @@ If you built from source, use `./scrapecli` instead.
 
 To create a new release:
 
+### Option 1: Create and push a tag (Automatic)
+
 1. Create and push a new tag with a `v` prefix:
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
    ```
 
-2. The GitHub Actions workflow will automatically:
+### Option 2: Manually trigger the workflow (Testing)
+
+1. Go to the [Actions tab](https://github.com/FRosner/scrapecli/actions/workflows/release.yml)
+2. Click "Run workflow"
+3. Enter the tag name (e.g., `v1.0.0`)
+4. Click "Run workflow" button
+
+The workflow will automatically create the tag and trigger the release process.
+
+### What happens during a release:
+
+The GitHub Actions workflow will automatically:
    - Build binaries for multiple platforms (Linux, macOS, Windows)
    - Create archives (tar.gz and zip)
    - Generate checksums
@@ -67,6 +80,33 @@ The Homebrew tap is automatically maintained by GoReleaser. When a new release i
 - Users can then install scrapecli via `brew tap FRosner/tap && brew install scrapecli`
 
 Note: The tap repository will be created automatically on the first release.
+
+### Testing the Homebrew Installation
+
+After creating a release, you can test the Homebrew installation:
+
+1. **Add the tap:**
+   ```bash
+   brew tap FRosner/tap
+   ```
+
+2. **Install scrapecli:**
+   ```bash
+   brew install scrapecli
+   ```
+
+3. **Verify the installation:**
+   ```bash
+   scrapecli --version
+   # or test with actual metrics
+   curl -s localhost:9090/metrics | scrapecli
+   ```
+
+4. **Uninstall (if needed):**
+   ```bash
+   brew uninstall scrapecli
+   brew untap FRosner/tap
+   ```
 
 ## Test Resources
 
