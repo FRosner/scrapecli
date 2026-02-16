@@ -33,8 +33,7 @@ builds:
     binary: scrapecli
 
 archives:
-  - id: archives
-    # this name template makes the OS and Arch compatible with the results of uname.
+  - # this name template makes the OS and Arch compatible with the results of uname.
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -45,11 +44,9 @@ archives:
     files:
       - README.md
       - LICENSE*
-    format_overrides:
-      - goos: windows
-        format: zip
     formats:
       - tar.gz
+      - zip
 
 checksum:
   name_template: 'checksums.txt'
@@ -70,10 +67,7 @@ changelog:
 
 # Homebrew tap configuration
 brews:
-  - # Use only the tar.gz archives (not zip)
-    ids:
-      - archives
-    # GitHub repository to push the Homebrew formula to
+  - # GitHub repository to push the Homebrew formula to
     repository:
       owner: FRosner
       name: homebrew-tap
