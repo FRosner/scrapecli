@@ -57,6 +57,16 @@ To create a new release:
    - Create archives (tar.gz and zip)
    - Generate checksums
    - Create a GitHub release with all artifacts
+   - Update the Homebrew tap at [FRosner/homebrew-tap](https://github.com/FRosner/homebrew-tap) with the new formula
+
+### Homebrew Tap
+
+The Homebrew tap is automatically maintained by GoReleaser. When a new release is created, GoReleaser will:
+- Generate a Homebrew formula based on the release artifacts
+- Push the formula to the [FRosner/homebrew-tap](https://github.com/FRosner/homebrew-tap) repository
+- Users can then install scrapecli via `brew tap FRosner/tap && brew install scrapecli`
+
+Note: The tap repository will be created automatically on the first release.
 
 ## Test Resources
 
