@@ -1,6 +1,6 @@
 ---
 title: Taming Prometheus Scrapes - Understanding and Analyzing Your Metrics Endpoints
-published: false
+published: true
 description: Learn how to diagnose oversized Prometheus scrapes and high-cardinality metrics using shell tools and scrapecli, a small CLI that parses the exposition format and gives you accurate series counts, type breakdowns, and label analysis.
 tags: golang, prometheus, devops, observability
 cover_image: https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hgb66glgt7ifn5bl4ppu.png
@@ -69,7 +69,7 @@ Session IDs are an obvious case, but the same pattern appears with any high-chur
 
 #### Scenario 2: Label Leaks from Stale Metadata
 
-A subtler problem arises when label values are derived from infrastructure metadata that can become stale, and the service fails to clean up its own metric registry. A common example in Kubernetes is a service that tracks metrics per pod (perhaps a controller, a proxy, or a sidecar that monitors its neighbours):
+A similar problem arises when label values can become stale, and the service fails to clean up its own metric registry. A common example in Kubernetes is a service that tracks metrics per pod (perhaps a controller, a proxy, or a sidecar that monitors its neighbors):
 
 ```
 # TYPE watched_pod_restarts_total counter
@@ -79,7 +79,7 @@ watched_pod_restarts_total{pod="web-7d4f9b-tz9vw"} 5
 ...
 ```
 
-When a pod is removed (due to a rolling deployment, a crash, or a scale-down), the correct behaviour is to also delete the corresponding metric series from the registry. If the code forgets to do that, the series for the old pod keeps appearing in every scrape indefinitely. The service is essentially accumulating a series for every pod it has ever seen.
+When a pod is removed (due to a rolling deployment, a crash, or a scale-down), the correct behavior is to also delete the corresponding metric series from the registry. If the code forgets to do that, the series for the old pod keeps appearing in every scrape indefinitely. The service is essentially accumulating a series for every pod it has ever seen.
 
 This is a pure instrumentation bug, and it can be surprisingly hard to notice. The service appears healthy, the scrape succeeds, and individual series look reasonable in isolation. But over time, especially in clusters with frequent deployments, the cardinality of that metric grows without bound. By the time someone notices the Prometheus memory usage climbing, hundreds or thousands of ghost series may already be present in the scrape.
 
@@ -206,7 +206,6 @@ cat prometheus-scrape.txt | scrapecli
 Running it against the same Prometheus scrape from the previous section produces:
 
 ![](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/q7r62zsp4dafhehg9zdv.png)
-
 
 ### What the Output Tells You
 
